@@ -259,19 +259,22 @@ class WavFrontendOnline(nn.Module):
     @staticmethod
     def apply_cmvn(inputs: torch.Tensor, cmvn: torch.Tensor) -> torch.Tensor:
         """
-        Apply CMVN with mvn data
+        Apply CMVN with mvn data.
+        Logic giữ nguyên: inputs += mean ; inputs *= var
         """
-
+    
         device = inputs.device
         dtype = inputs.dtype
         frame, dim = inputs.shape
-
-        means = np.tile(cmvn[0:1, :dim], (frame, 1))
-        vars = np.tile(cmvn[1:2, :dim], (frame, 1))
-        inputs += torch.from_numpy(means).type(dtype).to(device)
-        inputs *= torch.from_numpy(vars).type(dtype).to(device)
-
-        return inputs.type(torch.float32)
+    
+        means = cmvn[0:1, :dim].to(device=device, dtype=dtype)   # shape [1, D]
+        vars  = cmvn[1:1+1, :dim].to(device=device, dtype=dtype) # shape [1, D]
+    
+        # Broadcast không cần tile
+        inputs = inputs + means
+        inputs = inputs * vars
+    
+        return inputs.to(torch.float32)
 
     @staticmethod
     def apply_lfr(
