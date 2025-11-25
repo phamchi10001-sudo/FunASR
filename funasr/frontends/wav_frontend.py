@@ -49,8 +49,8 @@ def apply_cmvn(inputs, cmvn):  # noqa
 
     means = cmvn[0:1, :dim]
     vars = cmvn[1:2, :dim]
-    inputs += means.to(device)
-    inputs *= vars.to(device)
+    inputs = inputs + means.to(device)
+    inputs = inputs * vars.to(device)
 
     return inputs.type(torch.float32)
 
